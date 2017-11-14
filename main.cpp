@@ -49,13 +49,13 @@ const int Mouse_Speed_UD = 13; //mouse moving speed up and down
 const int Mouse_Speed_LR = 11; //mouse moving speed left and right 
 const double SCREEN_WIDTH = 1360;   // this is the dispaly resolution 
 const double SCREEN_HEIGHT = 728;
-const double X_RANGE = 32; //smaller value gives a faster change
+const double X_RANGE = 100; //smaller value gives a faster change
 const double Y_RANGE = 1;
 const double RESOLUTION_X = 1366;
 const double RESOLUTION_Y = 768;
 const double CTRL_X = 1000;
 const double CTRL_Y = 80;
-bool changeY = true; //this is to set if need to track y position
+bool changeY = false; //this is to set if need to track y position
 
 					 // the string can be changed for control instruction 
 string command1 = "LEFT";
@@ -671,7 +671,7 @@ int control(int x, int y, Mat &camera) {
 	GetCursorPos(&p);
 	char strx[20] = { 0 };
 	sprintf_s(strx, "%d", p.x);
-	cout << strx;
+	//cout << strx;
 	putText(camera, strx, Point(80, 690), cv::FONT_HERSHEY_SIMPLEX, 1.5, Scalar(100, 255, 100), 5, 8);
 
 
@@ -705,7 +705,7 @@ int control(int x, int y, Mat &camera) {
 	//  return 0; 
 
 	//	else
-	return 0;
+	//return 0;
 }
 
 char controlC(int x, int y, Mat &camera) {
@@ -771,7 +771,7 @@ void screensize(int & x_screen, int & y_screen, int x, int y) {
 void controlbox(Mat &output, int num) {
 	//rectangle(output, Point(130, 0), Point(CTRL_X+130, CTRL_Y), Scalar(0, 0, 0), CV_FILLED, 8);
 	//rectangle(output, Point(130, CTRL_Y/2), Point(CTRL_X+130, CTRL_Y), Scalar(0, 0, 0), CV_FILLED, 8);
-	int num1 = 17;
+	int num1 = 12;
 	for (int n = 0; n < num1; n++) {
 		//line(output, Point(n*CTRL_X / num1+130, 0), Point(n*CTRL_X / num1+130, CTRL_Y), Scalar(0, 0, 255));
 		rectangle(output, Point(130 + n * 100, 50), Point(230 + n * 100, 90), Scalar(55, 55, 55), 1, 18);
@@ -886,8 +886,8 @@ void ctrlSelect(int input, Mat ctrlPanel) {
 	else
 		Gselection = 100;
 
-
-	rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 0), Point(input * 200 + 130, 40), Scalar(156, 195, 165), CV_FILLED, 8);
+	//cout << Gselection << endl;
+	rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 10), Point(input * 200 + 130, 50), Scalar(156, 195, 165), CV_FILLED, 8);
 
 	if (start_time2) {
 		startx = clock();
@@ -901,7 +901,7 @@ void ctrlSelect(int input, Mat ctrlPanel) {
 		if (input == 5 && clickOne && duration2 >1)
 		{
 			cursor(input);
-			rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 0), Point(input * 200 + 130, 40), Scalar(232, 144, 144), CV_FILLED, 8);
+			rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 10), Point(input * 200 + 130, 50), Scalar(232, 144, 144), CV_FILLED, 8);
 			clickOne = false;
 			if (Gselection == 1)
 			{
@@ -1013,7 +1013,7 @@ void ctrlSelect(int input, Mat ctrlPanel) {
 		else if (input != 5 && duration2 > 1)
 		{
 			cursor(input);
-			rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 0), Point(input * 200 + 130, 40), Scalar(232, 144, 144), CV_FILLED, 8);
+			rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 10), Point(input * 200 + 130, 50), Scalar(232, 144, 144), CV_FILLED, 8);
 		}
 		else if (input != 5)
 			clickOne = true;
@@ -1205,6 +1205,45 @@ void wordstart() {
 
 }
 
+bool trackIR(int &x, int &y, Mat &imgThresh, Mat &frame) {
+	vector<vector<Point>> contours;
+	int maxArea = 0;
+	int largest_contour_index = 0;
+	bool isContour = false;
+	Rect contourRect;
+
+	findContours(imgThresh, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+	for (int i = 0; i < contours.size(); i++) {
+		double area = contourArea(contours[i]);
+		if (area > 2000) {
+			maxArea = area;
+			largest_contour_index = i;
+			isContour = true;
+		}
+	}
+
+	if (isContour == true && trackObject == -1) {
+		contourRect = boundingRect(contours[largest_contour_index]);
+		Point center = Point(contourRect.x + (contourRect.width / 2), contourRect.y + (contourRect.height / 2));
+		cout << "center: " << center.x << ", " << center.y << endl;
+		x = center.x;
+		y = center.y;
+		circle(frame, center, 5, Scalar(0, 0, 255), 5);
+		drawContours(frame, contours, largest_contour_index, Scalar(0, 255, 0), 2);
+		//circle(imgThresh, Point(320, 240), 3, Scalar(255), 3);
+		//circle(frame, Point(320, 240), 3, Scalar(255, 0, 0), 3);
+		return 1;
+	}
+	else {
+		circle(frame, Point(320, 240), 3, Scalar(255, 0, 0), 3);
+		return 0;
+	}
+
+
+
+}
+
 int main(int argc, char* argv[])
 {
 	//first to initial varibales 
@@ -1282,8 +1321,8 @@ int main(int argc, char* argv[])
 	//Set ForegroundWindow (Handle=window)
 
 
-	p.x = 500;
-	p.y = 500;
+	p.x = 840;
+	p.y = 200;
 	SetCursorPos(p.x, p.y);
 	mouse_event(MOUSEEVENTF_LEFTDOWN, cursor_x, cursor_y, 0, 0); // moving left click
 	window = GetForegroundWindow();
@@ -1297,7 +1336,8 @@ int main(int argc, char* argv[])
 
 #pragma region console_display
 	VideoCapture capture;
-	capture.open(0);
+	capture.open(1);
+
 	if (!capture.isOpened())
 	{
 		printf("Error in opening the camera, please check!  \n");
@@ -1320,7 +1360,7 @@ int main(int argc, char* argv[])
 	capture.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 	//start an infinite loop where webcam feed is copied to cameraFeed matrix
 	//all of our operations will be performed within this loop	
-	cout << "you may enter your instruction ";
+	//cout << "you may enter your instruction ";
 
 #pragma endregion 
 
@@ -1340,6 +1380,13 @@ int main(int argc, char* argv[])
 	namedWindow(windowName, 0);
 	namedWindow(windowName2, 0);
 	setMouseCallback("Original Image", onMouse, 0);
+	Mat erodeStruct = getStructuringElement(MORPH_ERODE, Size(5, 5));
+	Mat dilateStruct = getStructuringElement(MORPH_DILATE, Size(5, 5));
+	//Mat frame;
+	Mat imgGray;
+	Mat imgThresh;
+	Mat imgContours;
+	
 
 	while (1) {
 
@@ -1362,13 +1409,22 @@ int main(int argc, char* argv[])
 			flip(inverse, cameraFeed, 1);
 		}
 		*/
-		cvtColor(cameraFeed, hsv, COLOR_BGR2HSV);
-		inRange(hsv, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
+		flip(cameraFeed, cameraFeed, 1);
 
+		cvtColor(cameraFeed, imgGray, CV_BGR2GRAY);
+		inRange(imgGray, 0, 18, imgThresh);
+		erode(imgThresh, imgThresh, erodeStruct);
+		erode(imgThresh, imgThresh, erodeStruct);
+		dilate(imgThresh, imgThresh, dilateStruct);
+		dilate(imgThresh, imgThresh, dilateStruct);
 
+		//cvtColor(cameraFeed, hsv, COLOR_BGR2HSV);
+		//inRange(hsv, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
+
+		/*
 		//MorphOps
 		if (useMorphOps)
-			morphOps(threshold);
+			morphOps(threshold);*/
 
 		//pass in thresholded frame to our object tracking function
 		//this function will return the x and y coordinates of the
@@ -1392,7 +1448,9 @@ int main(int argc, char* argv[])
 			if (methodOpt == 2)
 				trackFilteredObject(x, y, threshold, cameraFeed, wholePanel);
 			else if (methodOpt == 1)
-				objectFound = track(x, y, threshold);
+				//objectFound = track(x, y, threshold);
+				objectFound = trackIR(x, y, imgThresh, cameraFeed);
+				
 		}
 
 		/*
@@ -1400,9 +1458,11 @@ int main(int argc, char* argv[])
 		{
 			cout << "x value is " << x;
 			cout << "y value is " << y << endl;
-		}
-		*/
+		}*/
+		
+		//cout << "x_o" << x_o << endl;
 		screensize(x_screen, y_screen, x, y);
+		//cout << "x_screen" << x_screen << endl;
 		circle(wholePanel, Point(x_screen, y_screen), 5, Scalar(0, 0, 255), 2);
 		circle(wholePanel, Point(680,364), 20, Scalar(0, 0, 255), 2);
 #pragma endregion
@@ -1425,6 +1485,7 @@ int main(int argc, char* argv[])
 		}
 
 		else if (cali == false) {
+			circle(cameraFeed, Point(x_o, y_o), 5, Scalar(255, 0, 0), 5);
 			startControl = true;
 		}
 
@@ -1438,12 +1499,13 @@ int main(int argc, char* argv[])
 			if (changeY)
 				y_screen1 = y_screen;
 			else
-				y_screen1 = 100;
+				y_screen1 = 40;
+			//cout << "++" << x_screen1 << ", " << y_screen1 << endl;
 			circle(ctrlPanel, Point(x_screen1, y_screen1), 5, Scalar(0, 0, 255), 2);
 		}
 
 		//function on ctrlbox and corresponding indicate area divide: 
-		controlbox(wholePanel, 5);
+		//controlbox(wholePanel, 5);
 
 #pragma endregion 
 
@@ -1461,7 +1523,7 @@ int main(int argc, char* argv[])
 			else if (startControl == false)
 				input = 0;
 		}
-
+		controlbox(wholePanel, 5);
 #pragma endregion 		
 /*
 #pragma region opt2_control
@@ -1493,7 +1555,7 @@ int main(int argc, char* argv[])
 */
 #pragma region screen 
 
-		circle(cameraFeed, Point(320, 240), 20, Scalar(0, 0, 255), 2);
+		//circle(cameraFeed, Point(320, 240), 20, Scalar(0, 0, 255), 2);
 
 		//Mat colorPanel;
 		//colorPanel = Mat::zeros(Size(600, 1200), CV_8UC3);
@@ -1519,7 +1581,7 @@ int main(int argc, char* argv[])
 		namedWindow("wholePanel", WINDOW_NORMAL);
 		imshow("wholePanel", wholePanel);
 		moveWindow("wholePanel", 0, 0);
-
+		/*
 		//Bright green panel
 		Mat new_image = Mat::zeros(wholePanel.size(), wholePanel.type());
 		//cout << " Basic Linear Transforms " << endl;
@@ -1537,7 +1599,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		wholePanel = new_image;
-
+		*/
 
 
 		imshow("ctrlPanel", ctrlPanel);
