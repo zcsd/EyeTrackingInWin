@@ -49,7 +49,7 @@ const int Mouse_Speed_UD = 13; //mouse moving speed up and down
 const int Mouse_Speed_LR = 11; //mouse moving speed left and right 
 const double SCREEN_WIDTH = 1360;   // this is the dispaly resolution 
 const double SCREEN_HEIGHT = 728;
-const double X_RANGE = 100; //smaller value gives a faster change
+const double X_RANGE = 200; //smaller value gives a faster change
 const double Y_RANGE = 1;
 const double RESOLUTION_X = 1366;
 const double RESOLUTION_Y = 768;
@@ -665,7 +665,7 @@ int controlGesture1(int x, int y, Mat &camera) {
 // selection for control panel gesture contrl 
 
 // selection for control panel coordinates 
-int control(int x, int y, Mat &camera) {
+int control(int xt, int x, int y, Mat &camera) {
 
 	putText(camera, "Controlling", Point(80, 650), 2, 1, Scalar(160, 210, 60), 2);
 	GetCursorPos(&p);
@@ -674,9 +674,33 @@ int control(int x, int y, Mat &camera) {
 	//cout << strx;
 	putText(camera, strx, Point(80, 690), cv::FONT_HERSHEY_SIMPLEX, 1.5, Scalar(100, 255, 100), 5, 8);
 
-
+	int diff = xt - 320;
+	cout << diff << endl;
+	if (diff < -130)
+	{
+		return 1;
+	}
+	else if (diff >= -130 && diff <= -50)
+	{
+		return 2;
+	}
+	else if (diff > -50 && diff < 50)
+	{
+		return 3;
+	}
+	else if (diff >= 50 && diff <= 130)
+	{
+		return 4;
+	}
+	else if (diff > 130)
+	{
+		return 5;
+	}
+	else
+		return 0;
 
 	//if (y < 500){
+	/*
 	if (x < 200)
 	{
 		return 1;
@@ -699,7 +723,7 @@ int control(int x, int y, Mat &camera) {
 		return 5;
 	}
 	else
-		return 0;
+		return 0;*/
 	//}
 	//else if ( y >500)
 	//  return 0; 
@@ -1226,7 +1250,7 @@ bool trackIR(int &x, int &y, Mat &imgThresh, Mat &frame) {
 	if (isContour == true && trackObject == -1) {
 		contourRect = boundingRect(contours[largest_contour_index]);
 		Point center = Point(contourRect.x + (contourRect.width / 2), contourRect.y + (contourRect.height / 2));
-		cout << "center: " << center.x << ", " << center.y << endl;
+		//cout << "center: " << center.x << ", " << center.y << endl;
 		x = center.x;
 		y = center.y;
 		circle(frame, center, 5, Scalar(0, 0, 255), 5);
@@ -1463,8 +1487,8 @@ int main(int argc, char* argv[])
 		//cout << "x_o" << x_o << endl;
 		screensize(x_screen, y_screen, x, y);
 		//cout << "x_screen" << x_screen << endl;
-		circle(wholePanel, Point(x_screen, y_screen), 5, Scalar(0, 0, 255), 2);
-		circle(wholePanel, Point(680,364), 20, Scalar(0, 0, 255), 2);
+		//circle(wholePanel, Point(x_screen, y_screen), 5, Scalar(0, 0, 255), 2);
+		//circle(wholePanel, Point(680,364), 20, Scalar(0, 0, 255), 2);
 #pragma endregion
 
 #pragma region calibration and projection
@@ -1515,7 +1539,7 @@ int main(int argc, char* argv[])
 			// this is for counting time for seletion 
 			if (startControl == true)
 			{
-				input = control(x_screen1, y_screen1, wholePanel);
+				input = control(x, x_screen1, y_screen1, wholePanel);
 				ctrlSelect(input, wholePanel);
 				//controlGesture1(x_screen1, y_screen1, wholePanel);
 			}
@@ -1524,6 +1548,11 @@ int main(int argc, char* argv[])
 				input = 0;
 		}
 		controlbox(wholePanel, 5);
+
+		line(cameraFeed, Point(190,0), Point(190, 480), Scalar(0, 255, 0), 2, 8);
+		line(cameraFeed, Point(270, 0), Point(270, 480), Scalar(0, 255, 0), 2, 8);
+		line(cameraFeed, Point(370, 0), Point(370, 480), Scalar(0, 255, 0), 2, 8);
+		line(cameraFeed, Point(450, 0), Point(450, 480), Scalar(0, 255, 0), 2, 8);
 #pragma endregion 		
 /*
 #pragma region opt2_control
@@ -1609,6 +1638,7 @@ int main(int argc, char* argv[])
 		hwnd2 = (HWND)cvGetWindowHandle("panel");
 		//SetWindowPos(hwnd2, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		namedWindow(windowName, WINDOW_NORMAL);
+
 		imshow(windowName, cameraFeed);
 		resizeWindow(windowName, 320, 240);
 		moveWindow(windowName, 100, 200);
