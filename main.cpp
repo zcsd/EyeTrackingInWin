@@ -28,8 +28,8 @@ using namespace std;
 
 HWND window;
 RECT rect;
-int H_MIN = 31;
-int H_MAX = 124;
+int H_MIN = 0;
+int H_MAX = 18;
 int S_MIN = 79;
 int S_MAX = 256;
 int V_MIN = 30;
@@ -282,8 +282,8 @@ void createTrackbars() {
 	namedWindow(trackbarWindowName, 0);
 	//create memory to store trackbar name on window
 	char TrackbarName[50];
-	sprintf_s(TrackbarName, "H_MIN", H_MIN);
-	sprintf_s(TrackbarName, "H_MAX", H_MAX);
+	sprintf_s(TrackbarName, "MIN", H_MIN);
+	sprintf_s(TrackbarName, "MAX", H_MAX);
 	sprintf_s(TrackbarName, "S_MIN", S_MIN);
 	sprintf_s(TrackbarName, "S_MAX", S_MAX);
 	sprintf_s(TrackbarName, "V_MIN", V_MIN);
@@ -300,8 +300,8 @@ void createTrackbars() {
 	//the max value the trackbar can move (eg. H_HIGH),
 	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
 	//                                  ---->    ---->     ---->      
-	createTrackbar("H_MIN", trackbarWindowName, &H_MIN, 255, on_trackbar);
-	createTrackbar("H_MAX", trackbarWindowName, &H_MAX, 255, on_trackbar);
+	createTrackbar("MIN", trackbarWindowName, &H_MIN, 255, on_trackbar);
+	createTrackbar("MAX", trackbarWindowName, &H_MAX, 255, on_trackbar);
 	createTrackbar("S_MIN", trackbarWindowName, &S_MIN, 255, on_trackbar);
 	createTrackbar("S_MAX", trackbarWindowName, &S_MAX, 256, on_trackbar);
 	createTrackbar("V_MIN", trackbarWindowName, &V_MIN, 256, on_trackbar);
@@ -415,7 +415,17 @@ void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed, Mat & w
 
 // this function is to create a green window for main panel 
 void createPanel(Mat &panel, int height, int weight) {
-	rectangle(panel, Point(0, 0), Point(height, weight), Scalar(B, G, R), CV_FILLED, 8);
+	//rectangle(panel, Point(0, 0), Point(height, weight), Scalar(B, G, R), CV_FILLED, 8);
+	for (int n = 0; n < 5; n++) {
+		//rectangle(output, Point(130 + n * 100, 50), Point(230 + n * 100, 90), Scalar(55, 55, 55), 1, 18);
+		rectangle(panel, Point(n * 270, 0), Point(n * 270, 80), Scalar(200, 200, 200), 2, 18);
+	}
+	//0 270 540 810 1080 1350
+	putText(panel, command1, Point(110, 40), 2, 1, Scalar(0, 0, 255), 2);
+	putText(panel, command2, Point(380, 40), 2, 1, Scalar(0, 0, 255), 2);
+	putText(panel, command3, Point(650, 40), 2, 1, Scalar(0, 0, 255), 2);
+	putText(panel, command4, Point(920, 40), 2, 1, Scalar(0, 0, 255), 2);
+	putText(panel, command5, Point(1190, 40), 2, 1, Scalar(0, 0, 255), 2);
 }
 
 
@@ -764,8 +774,9 @@ char controlC(int x, int y, Mat &camera) {
 
 // doing eye stare  calibration 
 
-void calibration(int x, int y, Mat &cameraFeed, double duration) {
+void calibration(int x, int y, Mat &cameraFeed, double duration, Mat &rcameraFeed) {
 	putText(cameraFeed, "Calibration:", Point(80, 650), 4, 1, Scalar(0, 0, 255), 2);
+	putText(rcameraFeed, "C", Point(550, 50), 5, 2, Scalar(0, 0, 255),3);
 
 	if (duration < 1)
 	{
@@ -863,7 +874,7 @@ void cursor(int input) {
 }
 
 // time fucntion for staring counting and confirmation
-void ctrlSelect(int input, Mat ctrlPanel) {
+void ctrlSelect(int input, Mat ctrlPanel, Mat rctrlPanel) {
 	static bool start_time2 = false;
 	static clock_t startx;
 	static double duration2;
@@ -912,7 +923,7 @@ void ctrlSelect(int input, Mat ctrlPanel) {
 
 	//cout << Gselection << endl;
 	rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 10), Point(input * 200 + 130, 50), Scalar(156, 195, 165), CV_FILLED, 8);
-
+	rectangle(rctrlPanel, Point((input - 1) * 270, 0), Point(input * 270, 80), Scalar(156, 195, 165), CV_FILLED, 8);
 	if (start_time2) {
 		startx = clock();
 		start_time2 = false;
@@ -926,6 +937,7 @@ void ctrlSelect(int input, Mat ctrlPanel) {
 		{
 			cursor(input);
 			rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 10), Point(input * 200 + 130, 50), Scalar(232, 144, 144), CV_FILLED, 8);
+			rectangle(rctrlPanel, Point((input - 1) * 270, 0), Point(input * 270, 80), Scalar(232, 144, 144), CV_FILLED, 8);
 			clickOne = false;
 			if (Gselection == 1)
 			{
@@ -1038,6 +1050,7 @@ void ctrlSelect(int input, Mat ctrlPanel) {
 		{
 			cursor(input);
 			rectangle(ctrlPanel, Point((input - 1) * 200 + 130, 10), Point(input * 200 + 130, 50), Scalar(232, 144, 144), CV_FILLED, 8);
+			rectangle(rctrlPanel, Point((input - 1) * 270, 0), Point(input * 270, 80), Scalar(232, 144, 144), CV_FILLED, 8);
 		}
 		else if (input != 5)
 			clickOne = true;
@@ -1329,7 +1342,7 @@ int main(int argc, char* argv[])
 #pragma endregion
 						 //wordstart;
 
-
+	/*
 
 						 //open window edge
 	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -1338,7 +1351,7 @@ int main(int argc, char* argv[])
 	sei.lpVerb = L"open";
 	sei.lpFile = L"microsoft-edge:http://www.bbc.com";
 	ShellExecuteExW(&sei);
-
+	*/
 	//wordstart;
 
 
@@ -1436,7 +1449,7 @@ int main(int argc, char* argv[])
 		flip(cameraFeed, cameraFeed, 1);
 
 		cvtColor(cameraFeed, imgGray, CV_BGR2GRAY);
-		inRange(imgGray, 0, 18, imgThresh);
+		inRange(imgGray, H_MIN, H_MAX, imgThresh);
 		erode(imgThresh, imgThresh, erodeStruct);
 		erode(imgThresh, imgThresh, erodeStruct);
 		dilate(imgThresh, imgThresh, dilateStruct);
@@ -1462,8 +1475,8 @@ int main(int argc, char* argv[])
 		wholePanel = Mat::zeros(Size(SCREEN_WIDTH, SCREEN_HEIGHT), CV_8UC3);
 
 		Mat ctrlPanel;
-		ctrlPanel = Mat::zeros(Size(1000, 80), CV_8UC3);
-		createPanel(ctrlPanel, 1000, 80);
+		ctrlPanel = Mat::zeros(Size(1350, 80), CV_8UC3);
+		//createPanel(ctrlPanel, 1350, 80);
 		// this is a reflection on whole screen display 
 
 		if (trackObjects)
@@ -1503,7 +1516,7 @@ int main(int argc, char* argv[])
 			duration = (double)(clock() - start) / CLOCKS_PER_SEC;
 
 			if (duration < 3)
-				calibration(x, y, wholePanel, duration);
+				calibration(x, y, wholePanel, duration, cameraFeed);
 			if (duration > 3)
 				cali = false;
 		}
@@ -1525,7 +1538,7 @@ int main(int argc, char* argv[])
 			else
 				y_screen1 = 40;
 			//cout << "++" << x_screen1 << ", " << y_screen1 << endl;
-			circle(ctrlPanel, Point(x_screen1, y_screen1), 5, Scalar(0, 0, 255), 2);
+			//circle(ctrlPanel, Point(x_screen1, y_screen1), 5, Scalar(0, 0, 255), 2);
 		}
 
 		//function on ctrlbox and corresponding indicate area divide: 
@@ -1540,7 +1553,7 @@ int main(int argc, char* argv[])
 			if (startControl == true)
 			{
 				input = control(x, x_screen1, y_screen1, wholePanel);
-				ctrlSelect(input, wholePanel);
+				ctrlSelect(input, wholePanel,ctrlPanel);
 				//controlGesture1(x_screen1, y_screen1, wholePanel);
 			}
 
@@ -1548,6 +1561,7 @@ int main(int argc, char* argv[])
 				input = 0;
 		}
 		controlbox(wholePanel, 5);
+		createPanel(ctrlPanel, 1350, 80);
 
 		line(cameraFeed, Point(190,0), Point(190, 480), Scalar(0, 255, 0), 2, 8);
 		line(cameraFeed, Point(270, 0), Point(270, 480), Scalar(0, 255, 0), 2, 8);
@@ -1607,9 +1621,9 @@ int main(int argc, char* argv[])
 */
 		// show the images
 		//rectangle(wholePanel, Point(1100, 100), Point(1960, 1100), Scalar(0, 255, 0), -1, 8); //right green rectangle on "wholepanel"
-		namedWindow("wholePanel", WINDOW_NORMAL);
-		imshow("wholePanel", wholePanel);
-		moveWindow("wholePanel", 0, 0);
+		//namedWindow("wholePanel", WINDOW_NORMAL);
+		//imshow("wholePanel", wholePanel);
+		//moveWindow("wholePanel", 0, 0);
 		/*
 		//Bright green panel
 		Mat new_image = Mat::zeros(wholePanel.size(), wholePanel.type());
@@ -1630,7 +1644,13 @@ int main(int argc, char* argv[])
 		wholePanel = new_image;
 		*/
 
-
+		namedWindow("Threshold", WINDOW_NORMAL);
+		resizeWindow("Threshold", 320, 240);
+		moveWindow("Threshold", 420, 200);
+		imshow("Threshold", imgThresh);
+		
+		//namedWindow("ctrlPanel", WINDOW_NORMAL);
+		moveWindow("ctrlPanel", 8, 0);
 		imshow("ctrlPanel", ctrlPanel);
 		hwnd1 = (HWND)cvGetWindowHandle("ctrlPanel");
 		//SetWindowPos(hwnd1, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
