@@ -29,7 +29,7 @@ using namespace std;
 HWND window;
 RECT rect;
 int H_MIN = 0;
-int H_MAX = 18;
+int H_MAX = 17;
 int S_MIN = 79;
 int S_MAX = 256;
 int V_MIN = 30;
@@ -45,8 +45,8 @@ bool Sstop = false;
 //default capture width and height
 const int FRAME_WIDTH = 640;   // this is the camera viode size 
 const int FRAME_HEIGHT = 480;
-const int Mouse_Speed_UD = 13; //mouse moving speed up and down 
-const int Mouse_Speed_LR = 11; //mouse moving speed left and right 
+const int Mouse_Speed_UD = 7; //mouse moving speed up and down 
+const int Mouse_Speed_LR = 7; //mouse moving speed left and right 
 const double SCREEN_WIDTH = 1360;   // this is the dispaly resolution 
 const double SCREEN_HEIGHT = 728;
 const double X_RANGE = 200; //smaller value gives a faster change
@@ -698,11 +698,11 @@ int control(int xt, int x, int y, Mat &camera) {
 	{
 		return 3;
 	}
-	else if (diff >= 50 && diff <= 130)
+	else if (diff >= 38 && diff <= 108)
 	{
 		return 4;
 	}
-	else if (diff > 130)
+	else if (diff > 108)
 	{
 		return 5;
 	}
@@ -862,6 +862,8 @@ void cursor(int input) {
 	case 5:
 		mouse_event(MOUSEEVENTF_LEFTDOWN, cursor_x, cursor_y, 0, 0); // moving left click
 		mouse_event(MOUSEEVENTF_LEFTUP, cursor_x, cursor_y, 0, 0); // moving cursor leftup 
+		mouse_event(MOUSEEVENTF_LEFTDOWN, cursor_x, cursor_y, 0, 0); // moving left click
+		mouse_event(MOUSEEVENTF_LEFTUP, cursor_x, cursor_y, 0, 0); // moving cursor leftup
 		break;
 	case 6:
 		mouse_event(MOUSEEVENTF_RIGHTDOWN, cursor_x, cursor_y, 0, 0); // cursor right click
@@ -1253,7 +1255,9 @@ bool trackIR(int &x, int &y, Mat &imgThresh, Mat &frame) {
 
 	for (int i = 0; i < contours.size(); i++) {
 		double area = contourArea(contours[i]);
-		if (area > 2000) {
+		Rect tempRect = boundingRect(contours[i]);
+		//Point tcenter = Point(tempRect.x + (tempRect.width / 2), tempRect.y + (tempRect.height / 2));
+		if (area > 2000 && tempRect.x < 400) {
 			maxArea = area;
 			largest_contour_index = i;
 			isContour = true;
@@ -1453,7 +1457,7 @@ int main(int argc, char* argv[])
 		erode(imgThresh, imgThresh, erodeStruct);
 		erode(imgThresh, imgThresh, erodeStruct);
 		dilate(imgThresh, imgThresh, dilateStruct);
-		dilate(imgThresh, imgThresh, dilateStruct);
+		//dilate(imgThresh, imgThresh, dilateStruct);
 
 		//cvtColor(cameraFeed, hsv, COLOR_BGR2HSV);
 		//inRange(hsv, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
@@ -1565,8 +1569,8 @@ int main(int argc, char* argv[])
 
 		line(cameraFeed, Point(190,0), Point(190, 480), Scalar(0, 255, 0), 2, 8);
 		line(cameraFeed, Point(270, 0), Point(270, 480), Scalar(0, 255, 0), 2, 8);
-		line(cameraFeed, Point(370, 0), Point(370, 480), Scalar(0, 255, 0), 2, 8);
-		line(cameraFeed, Point(450, 0), Point(450, 480), Scalar(0, 255, 0), 2, 8);
+		line(cameraFeed, Point(358, 0), Point(358, 480), Scalar(0, 255, 0), 2, 8);
+		line(cameraFeed, Point(428, 0), Point(428, 480), Scalar(0, 255, 0), 2, 8);
 #pragma endregion 		
 /*
 #pragma region opt2_control
